@@ -1,0 +1,114 @@
+#pragma version 6
+// Approval program for course management
+
+// Global state schema (example)
+// course_count: uint64 (number of courses)
+// course_{id}: bytes (JSON string of course data)
+
+txn ApplicationID
+int 0
+==
+bz create_app
+
+txn ApplicationArgs 0
+byte "add_course"
+==
+bz add_course
+
+txn ApplicationArgs 0
+byte "update_course"
+==
+bz update_course
+
+txn ApplicationArgs 0
+byte "delete_course"
+==
+bz delete_course
+
+txn ApplicationArgs 0
+byte "enroll_student"
+==
+bz enroll_student
+
+err
+
+create_app:
+    // Initialize global state
+    int 0
+    byte "course_count"
+    app_global_put
+    int 1
+    return
+
+add_course:
+    // Get course data from txn.ApplicationArgs
+    // Example: [ "add_course", "COURSE101", "Intro to Blockchain", "Description", "3" ]
+
+    txn ApplicationArgs length
+    int 5
+    ==
+    assert
+
+    txn ApplicationArgs 1  // course_id
+    txn ApplicationArgs 2  // name
+    txn ApplicationArgs 3  // description
+    txn ApplicationArgs 4  // credits
+
+    // Construct a JSON string (This is highly simplified - consider proper JSON encoding)
+    byte "{\"course_id\":\""
+    concat
+    txn ApplicationArgs 1
+    concat
+    byte "\",\"name\":\""
+    concat
+    txn ApplicationArgs 2
+    concat
+    byte "\",\"description\":\""
+    concat
+    txn ApplicationArgs 3
+    concat
+    byte "\",\"credits\":\""
+    concat
+    txn ApplicationArgs 4
+    concat
+    byte "\"}"
+    concat
+
+    dup // Duplicate the JSON string for the key
+
+    byte "course_"
+    concat
+
+    app_global_put // Store the course data
+
+    // Increment course count
+    byte "course_count"
+    app_global_get
+    int 1
+    +
+    byte "course_count"
+    app_global_put
+    int 1
+    return
+
+update_course:
+    // Logic to update an existing course (similar to add_course but checks if the course exists)
+    // ...
+
+    int 1
+    return
+
+delete_course:
+    // Logic to delete a course
+    // ...
+
+    int 1
+    return
+
+enroll_student:
+    // Logic to enroll a student in a course
+    // ...
+
+    int 1
+    return
+    
