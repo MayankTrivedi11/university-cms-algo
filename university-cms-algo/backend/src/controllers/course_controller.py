@@ -3,13 +3,19 @@ from flask import Blueprint, request, jsonify
 from src.services.course_service import CourseService
 from src.validators.course_validator import validate_course
 from src.helper.algorand import get_algod_client
+from algosdk.v2client import algod
 
 course_bp = Blueprint('course', __name__, url_prefix='/courses')
 
 algod_client = get_algod_client() # Initialize Algorand client
 
-course_service = CourseService(algod_client)
+# Initialize Algorand client
+algod_address = "http://localhost:4001"
+algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
+algod_client = algod.AlgodClient(algod_token, algod_address)
+
+course_service = CourseService(algod_client) # Passing algod_client to course service
 
 @course_bp.route('/', methods=['GET'])
 def get_courses():

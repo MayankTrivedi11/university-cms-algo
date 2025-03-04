@@ -1,7 +1,8 @@
 # backend/src/services/course_service.py
 
 import os
-from algosdk import algod, account, mnemonic
+from algosdk import algod
+from algosdk import account, mnemonic
 from algosdk.future import transaction
 from algosdk.v2client import algod
 from algosdk.future.transaction import TransactionParameters
@@ -50,4 +51,33 @@ class CourseService:
            return app_id
         except Exception as e:
             raise Exception(f"Error deploying smart contract: {e}")
+
+    def create_course(self, course_data):
+        try:
+            # Get suggested parameters
+            params = self.algod_client.suggested_params()
+            # Get private key from mnemonic
+            sk = os.getenv("PRIVATE_KEY")
+            addr = account.address_from_private_key(sk)
+
+            app_args = [
+                bytes("create_course", "utf-8"),
+                bytes(course_data['course_id'], "utf-8"),
+                bytes(course_data['name'], "utf-8"),
+                bytes(course_data['description'], "utf-8"),
+                bytes(str(course_data['credits']), "utf-8")
+            ]
+            txn = transaction.ApplicationCallTxn(addr, params, int(os.getenv("COURSE_APP_ID", 0)), transaction.OnComplete.NoOpOC, app_args)
+            # Sign the transaction
+            signed_txn = txn.sign(sk)
+            # Send the transaction
+            txid = self.algod_client.send_transaction(signed_txn)
+            # Wait for the transaction to be confirmed
+            transaction_response = transaction.wait_for_confirmation(self.algod_client, txid, 4)
+            # Get the application id
+            app_id = transaction_response['application-index']
+
+            return {"course_id": course_data['course_id'], "name": course_data['name'], "description": course_data['description'], "credits": course_data['credits']}
+        except Exception as e:
+            raise Exception(f"Error creating course: {e}")
             
